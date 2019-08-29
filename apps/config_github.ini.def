@@ -1,0 +1,4 @@
+SECRET=""
+KEYFILE=""
+APP_ID=
+DBFILE="petrographer.json"
