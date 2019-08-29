@@ -1,0 +1,11 @@
+sudo: false
+language: python
+python:
+    - "3.6"
+    - "nightly"
+cache: pip
+before_script:
+    - pip install -r requirements.txt
+script:
+    - python -m mypy --ignore-missing-imports apps/*.py
+    - python -m mypy --ignore-missing-imports -p petrographer

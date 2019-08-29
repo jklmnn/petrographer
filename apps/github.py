@@ -9,6 +9,13 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.backends import default_backend
 import jwt
 import requests
+from typing import Dict, List
+from mypy_extensions import TypedDict
+
+class Token(TypedDict):
+    jwt : str
+    exp : int
+    ins : Dict[str, Dict[str, str]]
 
 user_agent = "petrographer v0.0"
 
@@ -16,10 +23,10 @@ app = Flask(__name__)
 app.config.from_pyfile("config_github.ini")
 app.logger.setLevel(logging.INFO)
 
-__token = {"jwt": None,
-           "exp": 0,
-           "ins": {}}
-__db = {"installations":{}}
+__token : Token = {"jwt": "",
+                   "exp": 0,
+                   "ins": {}}
+__db : Dict[str, dict] = {"installations":{}}
 
 def __authenticate():
     global __token
@@ -60,13 +67,13 @@ def __authenticate():
             else:
                 app.logger.error(response.content.decode("utf-8"))
 
-def __installation(content):
+def __installation(content: dict) -> Response:
     global __db
     global __token
     if content["action"] == "created":
         app.logger.info("installing " + str(content["installation"]["id"]) + " from user " + content["installation"]["account"]["login"])
         __db["installations"] = {str(content["installation"]["id"]): content["installation"]}
-        __token["ins"][str(content["installation"]["id"])] = {"exp": "0", "token": None}
+        __token["ins"][str(content["installation"]["id"])] = {"exp": "0", "token": ""}
     elif content["action"] == "deleted":
         app.logger.info("deleting " + str(content["installation"]["id"]) + " from user " + content["installation"]["account"]["login"])
         __db["installations"].pop(str(content["installation"]["id"]), None)
@@ -78,11 +85,11 @@ def __installation(content):
     return Response("", 200)
 
 @app.route("/")
-def default():
+def default() -> Response:
     return abort(400)
 
 @app.route("/", methods=["POST"])
-def event():
+def event() -> Response:
     if "X-Github-Event" in request.headers:
         if not request.is_json:
             return abort(415)

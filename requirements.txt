@@ -2,3 +2,4 @@ flask
 cryptography
 PyJWT
 requests
+mypy
